@@ -26,21 +26,39 @@ def clean_data(df):
     Output:
     - df(Dataframe): the cleaned and transformed Dataframe from input
     """
-    categories = df['categories'].str.split(';',expand=True)
-    row = categories.iloc[0,:].copy()
-    category_colnames = row.apply(lambda x: x[:-2])
+    # create a dataframe of the 36 individual category columns
+    categories = df['categories'].str.split(';', expand=True)
+    
+    # select the first row of the categories dataframe
+    row = categories.iloc[0]
+    
+    # extract a list of new column names for categories.
+    # one way is to apply a lambda function that takes everything 
+    # up to the second to last character of each string with slicing
+    category_colnames = [x[0:len(x)-2] for x in row]
+    
+    # rename the columns of `categories`
     categories.columns = category_colnames
+    
+    # Convert category values to just numbers 0 or 1
+    categories = categories.astype(str)
     for column in categories:
         # set each value to be the last character of the string
-        categories[column] = categories[column].str[-1]
-    
+        categories[column] = categories[column].apply(lambda x: x[-1:] if x[-1:]=='0' or x[-1:]=='1' else '0')
         # convert column from string to numeric
-        categories[column] = pd.to_numeric(categories[column])
-    df = df.drop(['categories'],axis=1)
-    df = pd.concat([df, categories], axis = 1)
-    df = df[~df.duplicated()]
-    df.related.replace(2,1,inplace=True)
-    return df     
+        categories[column] = categories[column].astype(int)
+    
+    # Replace categories column in df with new category columns
+    # drop the original categories column from `df`
+    df.drop('categories', inplace=True, axis=1)
+    
+    # concatenate the original dataframe with the new `categories` dataframe
+    df = pd.concat([df, categories], axis=1)
+    
+    # drop duplicates
+    df = df.drop_duplicates()
+    
+    return df
 
 def save_data(df, database_filename):
     """

@@ -60,8 +60,7 @@ def tokenize(text):
 def build_model():
     """
     This function defines a ML pipeline with parameters found using GridSearch.
-    (The GridSearch part is done in the attached Jupyter notebook, since GridSearch
-    takes a long time to run)
+    (GridSearch part is done in the attached Jupyter notebook)
     Output:
     - pipeline(Pipeline): ML pipeline
     """

@@ -7,43 +7,31 @@ from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
+from flask import Markup
 from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+import joblib
+import logging
 from sqlalchemy import create_engine
 
-
+# App config.
+DEBUG = True
 app = Flask(__name__)
 
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
+def return_figures(df):
+    """Creates plotly visualizations
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+    Args:
+        A pd frame;
 
-    return clean_tokens
+    Returns:
+        list (dict): list containing plotly visualizations
 
-# load data
-engine = create_engine('sqlite:///../data/DisasterResponse.db')
-df = pd.read_sql_table('mess', engine)
+    """
 
-# load model
-model = joblib.load("../models/classifier.pkl")
-
-
-# index webpage displays cool visuals and receives user input text for model
-@app.route('/')
-@app.route('/index')
-def index():
-    
     # extract data needed for visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
-    # create visuals
-    graphs = [
+    graph = [
         {
             'data': [
                 Bar(
@@ -52,7 +40,7 @@ def index():
                 )
             ],
 
-            'layout': {
+           'layout': {
                 'title': 'Distribution of Message Genres',
                 'yaxis': {
                     'title': "Count"
@@ -63,14 +51,47 @@ def index():
             }
         }
     ]
-    
-    # encode plotly graphs in JSON
-    ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # ===  Plot the graphs offline with the div format to be rendered on html ===
+    Plot_one = plotly.offline.plot(graph[0], 
+            config={"displayModeBar": False}, 
+            show_link=False, include_plotlyjs=False, 
+            output_type='div')
+    Plot_one = Markup(Plot_one)
+
+    # append all charts to the figures list
+    plots_list = []
+    plots_list.append(Plot_one)
+
+    return plots_list
+
+def tokenize(text):
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+    return clean_tokens
+
+# load data
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('message', engine)
+
+# create visuals
+figures = return_figures(df)
+
+# load model
+model = joblib.load("../models/classifier.pkl")
+
+# index webpage displays cool visuals and receives user input text for model
+@app.route('/')
+@app.route('/index')
+def index():
     
     # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
-
+    return render_template('master.html', posts=figures)
 
 # web page that handles user query and displays model results
 @app.route('/go')
@@ -86,13 +107,17 @@ def go():
     return render_template(
         'go.html',
         query=query,
-        classification_result=classification_results
+        classification_result=classification_results,
+        posts=figures
     )
 
-
-def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
-
+@app.errorhandler(500)
+def server_error(e):
+    logging.exception('some error')
+    return """
+    And internal error <pre>{}</pre>
+    """.format(e), 500
 
 if __name__ == '__main__':
-    main()
+    #main()
+    app.run()
