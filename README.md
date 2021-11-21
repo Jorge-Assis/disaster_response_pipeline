@@ -61,6 +61,7 @@ In this project folder, `ETL Pipeline Preparation.ipynb` and `ML Pipeline Prepar
 2. Run the following command in the app's directory to run your web app.
     `python run.py`
 
-3. Go to http://0.0.0.0:3001/ or http://localhost:3001/
+3. Follow the link shown on the terminal.
+   For example, on my terminal I got: "Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)". To run the WebApp I used the indicated link on a browser.
 
 
