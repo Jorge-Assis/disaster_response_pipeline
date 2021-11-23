@@ -37,7 +37,7 @@ Therefore, we would like to build classifier for the text messages, giving out c
 - Use GridSearch to optimize parameters
 - Output final model for web-deployment
 
-The final model achieves a **F1 score of 0.68**.
+The final model achieves a **F1 score of 0.67**.
 
 3. **Web Deployment**
 - Design backend using `Flask`, visualization using `plotly`
