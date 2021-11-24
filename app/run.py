@@ -31,7 +31,7 @@ def return_figures(df):
     # extract data needed for visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    graph = [
+    graph1 = [
         {
             'data': [
                 Bar(
@@ -51,17 +51,47 @@ def return_figures(df):
             }
         }
     ]
+    df_categories = df[df.columns[4:]]
+    category_sum = df_categories.sum()
+    categories_names = list(category_sum.index)
+    graph2 = [
+        {
+            'data': [
+                Bar(
+                    x=categories_names,
+                    y=category_sum
+                )
+            ],
+
+           'layout': {
+                'title': 'Distribution of Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Categories"
+                }
+            }
+        }
+    ]
 
     # ===  Plot the graphs offline with the div format to be rendered on html ===
-    Plot_one = plotly.offline.plot(graph[0], 
+    Plot_one = plotly.offline.plot(graph1[0], 
             config={"displayModeBar": False}, 
             show_link=False, include_plotlyjs=False, 
             output_type='div')
     Plot_one = Markup(Plot_one)
 
+    Plot_two = plotly.offline.plot(graph2[0], 
+            config={"displayModeBar": False}, 
+            show_link=False, include_plotlyjs=False, 
+            output_type='div')
+    Plot_two = Markup(Plot_two)
+
     # append all charts to the figures list
     plots_list = []
     plots_list.append(Plot_one)
+    plots_list.append(Plot_two)
 
     return plots_list
 
