@@ -33,7 +33,7 @@ def load_data(database_filepath):
     - category_names(list): list of category names for messages
     """
     engine = create_engine('sqlite:///' + database_filepath)
-    df = pd.read_sql_table('mess',engine)
+    df = pd.read_sql_table('message',engine)
     X = df.iloc[:,1]
     y = df.iloc[:,4:]
     category_names = y.columns
